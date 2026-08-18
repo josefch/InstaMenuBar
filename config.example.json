@@ -1,0 +1,14 @@
+{
+  "title_mode": "compact",
+  "default_view": "gallery",
+  "gallery_mode": "browser",
+  "media_limit": 20,
+  "caption_chars": 64,
+  "show_thumbnails": true,
+  "thumbnail_px": 64,
+  "gallery": true,
+  "gallery_width": 980,
+  "gallery_height": 760,
+  "notify_on_follower_change": true,
+  "notify_on_new_likes": false
+}
