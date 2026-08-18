@@ -834,4 +834,14 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+        sys.stdout.flush()
+    except BrokenPipeError:
+        # Piping into `head` closes stdout early. That is not an error for a
+        # plugin whose whole job is printing — redirect the remaining flush to
+        # devnull so Python doesn't complain at interpreter shutdown.
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        sys.exit(0)
+    except KeyboardInterrupt:
+        sys.exit(130)
