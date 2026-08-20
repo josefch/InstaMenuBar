@@ -21,6 +21,23 @@ leaves your Mac is an authenticated API call to Meta.
 
 ---
 
+## Two ways to run it
+
+**1. The app** (`instaapp.py`, bundled as `InstaMenuBar.app`) — a standalone
+window with the gallery inside it, a Dock icon showing the follower count, and
+⌘R to refresh. No menu bar involvement.
+
+```bash
+~/.instawatch/venv/bin/pip install pyobjc-framework-WebKit
+open InstaMenuBar.app
+```
+
+**2. The SwiftBar plugin** (`instawatch.30m.py`) — the follower count in the
+menu bar, with the gallery one click away. See *Install* below.
+
+Both share the same token, the same `~/.instawatch/history.json` and the same
+generated gallery; the app simply runs the plugin to do its data work.
+
 ## How it works
 
 It's a [SwiftBar][swiftbar] plugin: a single Python script that prints text,
@@ -87,6 +104,15 @@ in SwiftBar's preferences to have it come back after a reboot.
 Change the refresh interval by renaming the plugin file — `instawatch.30m.py` →
 `instawatch.10m.py` for every ten minutes.
 
+After editing the plugin, copy it into place and refresh SwiftBar with:
+
+```bash
+./sync.sh
+```
+
+SwiftBar does **not** run symlinked plugins, so the file has to be copied rather
+than linked.
+
 ## Configuration
 
 `~/.instawatch/config.json`, read on every refresh:
@@ -128,6 +154,13 @@ big view is a page, not a menu.
 bare `WKWebView` with no UI delegate, so `window.open` returns null and
 `target="_blank"` has nowhere to go. In panel mode a post click navigates the
 panel in place. Browser mode is the default for this reason.
+
+**A status item can be permanently hidden.** ⌘-dragging a menu bar item *off*
+the bar makes macOS refuse to place that app's status items afterwards — they
+are created, report `visible=True`, and get parked off-screen at `y = -22`.
+`probe.py` in this repo diagnoses it: it creates two labelled status items and
+reports whether their windows intersect any screen. The app version exists
+because of exactly this.
 
 **Likes are sometimes missing.** `like_count` is omitted for media where like
 counts are hidden, and isn't available for stories.

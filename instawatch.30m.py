@@ -388,7 +388,7 @@ def render(profile, media, history, config, previous_media):
         core = fmt_compact(followers)
 
     # Build the gallery first: the menu bar line itself may point at it.
-    gallery_path = (write_gallery(profile, media, history, previous_media)
+    gallery_path = (write_gallery(profile, media, history, previous_media, config)
                     if config.get("gallery", True) else None)
 
     if gallery_path and config.get("default_view", "gallery") == "gallery":
@@ -647,7 +647,8 @@ def history_table(history, days=14):
             f'<table>{"".join(rows)}</table></details>')
 
 
-def gallery_html(profile, media, history, previous, plugin_name="instawatch"):
+def gallery_html(profile, media, history, previous, plugin_name="instawatch",
+                 refresh_href="instawatch://refresh"):
     """A real page — the one place thumbnails can be as large as we like."""
     def h(text):
         return (str(text).replace("&", "&amp;").replace("<", "&lt;")
@@ -717,7 +718,7 @@ def gallery_html(profile, media, history, previous, plugin_name="instawatch"):
     </div>
     <div class="deltas">{''.join(deltas)}</div>
     <div class="acts">
-      <a href="swiftbar://refreshplugin?name={h(plugin_name)}">Refresh</a>
+      <a href="{h(refresh_href)}">Refresh</a>
       <a data-external href="https://instagram.com/{h(uname)}">Instagram</a>
     </div>
     {f'<div class="spark">{spark}<div class="tip"></div></div>' if spark else ''}
@@ -742,10 +743,19 @@ def plugin_name():
         return "instawatch"
 
 
-def write_gallery(profile, media, history, previous):
+def write_gallery(profile, media, history, previous, config=None):
+    config = config or {}
+    # In the standalone app the page is loaded in its own WebKit view, which
+    # intercepts instawatch:// and re-runs this script. Under SwiftBar, use
+    # SwiftBar's own URL scheme instead.
+    if config.get("refresh_scheme", "app") == "swiftbar":
+        refresh_href = f"swiftbar://refreshplugin?name={plugin_name()}"
+    else:
+        refresh_href = "instawatch://refresh"
     try:
         with open(GALLERY_PATH, "w", encoding="utf-8") as fh:
-            fh.write(gallery_html(profile, media, history, previous, plugin_name()))
+            fh.write(gallery_html(profile, media, history, previous,
+                                  plugin_name(), refresh_href))
         return GALLERY_PATH
     except OSError as exc:
         log(f"gallery write failed: {exc}")
